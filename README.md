@@ -1,4 +1,4 @@
-Gatling plugin for Maven - Scala demo project
+Gatling plugin for Maven - Scala demo project with Kafka
 =============================================
 
 A simple showcase of a Maven project using the Gatling plugin for Maven. Refer to the plugin documentation
