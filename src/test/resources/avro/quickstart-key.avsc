@@ -1,0 +1,1 @@
+{"type":"record","name":"KeyExample","namespace":"avro","fields":[{"name":"key","type":"string"}]}

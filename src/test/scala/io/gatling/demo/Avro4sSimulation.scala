@@ -20,46 +20,45 @@ class Avro4sSimulation extends Simulation {
     .properties(
       Map(
         ProducerConfig.ACKS_CONFIG                   -> "1",
-        // list of Kafka broker hostname and port pairs
         ProducerConfig.BOOTSTRAP_SERVERS_CONFIG      -> "localhost:9092",
-        ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG -> "io.confluent.kafka.serializers.KafkaAvroSerializer",
+        ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG   -> "io.confluent.kafka.serializers.KafkaAvroSerializer",
         ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG -> "io.confluent.kafka.serializers.KafkaAvroSerializer",
         "schema.registry.url"                        -> "http://localhost:8081"
       )
     )
 
   val schemaKey: Schema = new Parser().parse(Source.fromURL(getClass.getResource("/avro/quickstart-key.avsc")).mkString)
-  val genericKey: GenericRecord = new GenericData.Record(schemaKey)
+  val genericKeyRecord: GenericRecord = new GenericData.Record(schemaKey)
 
-  val schemaExample: Schema = new Parser().parse(Source.fromURL(getClass.getResource("/avro/quickstart-value.avsc")).mkString)
-  val genericExample: GenericRecord = new GenericData.Record(schemaExample)
+  val schemaValue: Schema = new Parser().parse(Source.fromURL(getClass.getResource("/avro/quickstart-value.avsc")).mkString)
+  val genericValueRecord: GenericRecord = new GenericData.Record(schemaValue)
 
   val scn: ScenarioBuilder = scenario("Kafka Test")
     .exec(session => {
-      genericKey.put("key", "MyKey002")
-      val newsession = session.set("genericKey", genericKey)
+      genericKeyRecord.put("key", "MyKey002")
+      val newsession = session.set("genericKeyRecord", genericKeyRecord)
       newsession
     }
     )
     .exec(session => {
-      genericExample.put("name1", "TUTU1")
-      genericExample.put("name2", "TATA2")
-      genericExample.put("name3", "TOTO3")
+      genericValueRecord.put("name1", "TUTU1")
+      genericValueRecord.put("name2", "TATA2")
+      genericValueRecord.put("name3", "TOTO3")
 
-      val newsession = session.set("genericExample", genericExample)
+      val newsession = session.set("genericValueRecord", genericValueRecord)
       newsession
     }
     )
     .exec(
-      kafka(" GenericRecord Simple Request with Key")
-        .send[GenericRecord, GenericRecord](session => session("genericKey").as[GenericRecord], session => session("genericExample").as[GenericRecord])
+      kafka("Avro Request")
+        .send[GenericRecord, GenericRecord](session => session("genericKeyRecord").as[GenericRecord], session => session("genericValueRecord").as[GenericRecord])
     )
 
 
 
   setUp(
     scn
-      .inject(constantUsersPerSec(10) during (5.seconds)),
+      .inject(constantUsersPerSec(10) during (5.seconds))
   )
     .protocols(kafkaConf)
 }
